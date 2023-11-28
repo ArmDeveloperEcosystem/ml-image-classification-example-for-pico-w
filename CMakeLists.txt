@@ -8,6 +8,7 @@ pico_sdk_init()
 
 add_executable(ml-image-classification-example-for-pico-w
     ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/image_classifier.cpp
     ${CMAKE_CURRENT_LIST_DIR}/lib/hm01b0-library-for-pico/examples/usb_camera/usb_descriptors.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/example-of-a-slackbot-for-pico-w/pico-sdk/https_client.c
     ${CMAKE_CURRENT_LIST_DIR}/lib/example-of-a-slackbot-for-pico-w/pico-sdk/slack_client.c
