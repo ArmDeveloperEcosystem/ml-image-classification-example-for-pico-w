@@ -4,3 +4,6 @@
 [submodule "lib/hm01b0-library-for-pico"]
 	path = lib/hm01b0-library-for-pico
 	url = https://github.com/ArmDeveloperEcosystem/hm01b0-library-for-pico.git
+[submodule "lib/example-of-a-slackbot-for-pico-w"]
+	path = lib/example-of-a-slackbot-for-pico-w
+	url = https://github.com/ArmDeveloperEcosystem/example-of-a-slackbot-for-pico-w.git
