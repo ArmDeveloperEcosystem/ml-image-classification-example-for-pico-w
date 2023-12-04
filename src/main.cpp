@@ -48,7 +48,7 @@ uint8_t* const yuv_buffer = tensor_arena;
 // use after the yuv image buffer for monochrome image buffer
 uint8_t* const monochrome_buffer = yuv_buffer + (FRAME_WIDTH * FRAME_HEIGHT * 2);
 
-char slack_client_buf[2048];
+char slack_client_buf[3 * 1024];
 slack_client_t slack_client;
 
 void main_task(void*);
