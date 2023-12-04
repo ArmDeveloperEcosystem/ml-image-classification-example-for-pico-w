@@ -32,7 +32,7 @@ int ImageClassifier::init()
         return 0;
     }
 
-    static tflite::MicroMutableOpResolver<7> micro_op_resolver(_errorReporter);
+    static tflite::MicroMutableOpResolver<9> micro_op_resolver(_errorReporter);
     if (micro_op_resolver.AddConv2D() != kTfLiteOk) {
         return 0;
     }
@@ -52,6 +52,12 @@ int ImageClassifier::init()
         return 0;
     }
     if (micro_op_resolver.AddDequantize() != kTfLiteOk) {
+        return 0;
+    }
+    if (micro_op_resolver.AddQuantize() != kTfLiteOk) {
+        return 0;
+    }
+    if (micro_op_resolver.AddConcatenation() != kTfLiteOk) {
         return 0;
     }
 
@@ -80,19 +86,21 @@ int ImageClassifier::init()
 
 float* ImageClassifier::predict(const uint8_t* image, int width, int height)
 {
-    // TODO: read width and height from model
-    int x_offset = (width - 96) / 2;
-    int y_offset = (height - 96) / 2;
+    int input_height = _input->dims->data[1];
+    int input_width = _input->dims->data[2];
+
+    int y_offset = (height - input_height) / 2;
+    int x_offset = (width - input_width) / 2;
 
     int8_t* dst = _input->data.int8;
     const uint8_t* src = image;
 
     src += y_offset * width;
 
-    for (int y = 0; y < 96; y++) {
+    for (int y = 0; y < input_height; y++) {
         src += x_offset;
 
-        for (int x = 0; x < 96; x++) {
+        for (int x = 0; x < input_width; x++) {
             *dst++ = *src++ - 128;
         }
 

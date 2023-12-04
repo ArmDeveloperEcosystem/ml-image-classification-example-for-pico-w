@@ -41,8 +41,11 @@ const struct hm01b0_config hm01b0_config = {
 uint8_t monochrome_buffer[FRAME_WIDTH * FRAME_HEIGHT];
 
 SemaphoreHandle_t tensor_arena_mutex;
-uint8_t tensor_arena[101 * 1024];
+uint8_t tensor_arena[101 * 1024] __attribute__((aligned(16)));
 ImageClassifier image_classifier(tensor_arena, sizeof(tensor_arena));
+
+// use start of tensor area for yuv image buffer
+uint8_t* const yuv_buffer = tensor_arena;
 
 char slack_client_buf[2048];
 slack_client_t slack_client;
@@ -84,7 +87,7 @@ void main_task(void*)
     }
 
     // lower the exposure
-    // hm01b0_set_coarse_integration(2);
+    hm01b0_set_coarse_integration(200);
 
     if (!image_classifier.init()) {
         LogError(("Failed to initialize image classifier!\n"));
@@ -120,23 +123,21 @@ void main_task(void*)
 
         float* predictions = image_classifier.predict(monochrome_buffer, FRAME_WIDTH, FRAME_HEIGHT);
 
-        LogInfo(("predictions = %f %f", predictions[0], predictions[1]));
+        LogInfo(("predictions = %f %f %f %f, smoothed_occupied_prediction = %f", predictions[0], predictions[1], predictions[2], predictions[3], smoothed_occupied_prediction));
 
         smoothed_occupied_prediction *= 0.8;
         smoothed_occupied_prediction += predictions[1] * 0.2;
 
         if (tud_video_n_streaming(0, 0)) {
             const uint8_t* src = monochrome_buffer;
-            uint8_t* dst = tensor_arena;
+            uint8_t* dst = yuv_buffer;
 
-            for (int y = 0; y < FRAME_HEIGHT; y++) {
-                for (int x = 0; x < FRAME_WIDTH; x++) {
-                    *dst++ = *src++;
-                    *dst++ = 128;
-                }
+            for (int i = 0; i < FRAME_HEIGHT * FRAME_WIDTH; i++) {
+                *dst++ = *src++;
+                *dst++ = 128;
             }
 
-            tud_video_n_frame_xfer(0, 0, tensor_arena, FRAME_WIDTH * FRAME_HEIGHT * 2);
+            tud_video_n_frame_xfer(0, 0, yuv_buffer, FRAME_WIDTH * FRAME_HEIGHT * 2);
         } else {
             xSemaphoreGive(tensor_arena_mutex);
         }
@@ -147,7 +148,7 @@ void main_task(void*)
 
                 LogInfo(("EV Charger is occupied"));
 
-                slack_client_post_message(&slack_client, "EV charger 1 is occupied :car:", "pico-w-test");
+                slack_client_post_message(&slack_client, ":redlight: EV charger 1 is occupied :redlight:", "pico-w-test");
             }
         } else {
             if (occupied) {
@@ -155,7 +156,7 @@ void main_task(void*)
 
                 LogInfo(("EV Charger is available"));
 
-                slack_client_post_message(&slack_client, "EV charger 1 is available", "pico-w-test");
+                slack_client_post_message(&slack_client, ":greenlight: EV charger 1 is available :greenlight:", "pico-w-test");
             }
         }
     }
