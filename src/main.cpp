@@ -38,14 +38,15 @@ const struct hm01b0_config hm01b0_config = {
     .height        = FRAME_HEIGHT,
 };
 
-uint8_t monochrome_buffer[FRAME_WIDTH * FRAME_HEIGHT];
-
 SemaphoreHandle_t tensor_arena_mutex;
 uint8_t tensor_arena[101 * 1024] __attribute__((aligned(16)));
 ImageClassifier image_classifier(tensor_arena, sizeof(tensor_arena));
 
 // use start of tensor area for yuv image buffer
 uint8_t* const yuv_buffer = tensor_arena;
+
+// use after the yuv image buffer for monochrome image buffer
+uint8_t* const monochrome_buffer = yuv_buffer + (FRAME_WIDTH * FRAME_HEIGHT * 2);
 
 char slack_client_buf[2048];
 slack_client_t slack_client;
@@ -119,14 +120,7 @@ void main_task(void*)
     while (1) {
         xSemaphoreTake(tensor_arena_mutex, portMAX_DELAY);
 
-        hm01b0_read_frame(monochrome_buffer, sizeof(monochrome_buffer));
-
-        float* predictions = image_classifier.predict(monochrome_buffer, FRAME_WIDTH, FRAME_HEIGHT);
-
-        LogInfo(("predictions = %f %f %f %f, smoothed_occupied_prediction = %f", predictions[0], predictions[1], predictions[2], predictions[3], smoothed_occupied_prediction));
-
-        smoothed_occupied_prediction *= 0.8;
-        smoothed_occupied_prediction += predictions[1] * 0.2;
+        hm01b0_read_frame(monochrome_buffer, FRAME_WIDTH * FRAME_HEIGHT);
 
         if (tud_video_n_streaming(0, 0)) {
             const uint8_t* src = monochrome_buffer;
@@ -141,6 +135,15 @@ void main_task(void*)
         } else {
             xSemaphoreGive(tensor_arena_mutex);
         }
+
+        xSemaphoreTake(tensor_arena_mutex, portMAX_DELAY);
+        float* predictions = image_classifier.predict(monochrome_buffer, FRAME_WIDTH, FRAME_HEIGHT);
+        xSemaphoreGive(tensor_arena_mutex);
+
+        smoothed_occupied_prediction *= 0.8;
+        smoothed_occupied_prediction += predictions[1] * 0.2;
+
+        LogInfo(("predictions = %f %f %f %f, smoothed_occupied_prediction = %f", predictions[0], predictions[1], predictions[2], predictions[3], smoothed_occupied_prediction));
 
         if (smoothed_occupied_prediction > 0.5) {
             if (!occupied) {
