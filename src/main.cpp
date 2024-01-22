@@ -84,7 +84,7 @@ int main(void)
 
 void main_task(void*)
 {
-    // wait up to 5 seconds for the USB serial to be opened
+    // wait up to 5 seconds for the USB serial to be opened by a PC
     while (!stdio_usb_connected() && (xTaskGetTickCount() / pdMS_TO_TICKS(1)) < 5000) {
         taskYIELD();
     }
