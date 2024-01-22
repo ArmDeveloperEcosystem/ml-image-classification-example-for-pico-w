@@ -2,7 +2,11 @@
 #include <pico/stdlib.h>
 #include <pico/cyw43_arch.h>
 
+#if __has_include(<bsp/board_api.h>)
 #include <bsp/board_api.h>
+#else
+#include <bsp/board.h>
+#endif
 #include <tusb.h>
 
 #include <FreeRTOS.h>
