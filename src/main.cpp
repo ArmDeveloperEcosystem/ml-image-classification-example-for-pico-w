@@ -1,3 +1,8 @@
+//
+// SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+// SPDX-License-Identifier: MIT
+//
+
 #include <stdio.h>
 #include <pico/stdlib.h>
 #include <pico/cyw43_arch.h>

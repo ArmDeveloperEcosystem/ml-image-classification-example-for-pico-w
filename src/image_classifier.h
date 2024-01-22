@@ -1,3 +1,8 @@
+//
+// SPDX-FileCopyrightText: Copyright 2024 Arm Limited and/or its affiliates <open-source-office@arm.com>
+// SPDX-License-Identifier: MIT
+//
+
 #ifndef _IMAGE_CLASSIFIER_H_
 #define _IMAGE_CLASSIFIER_H_
 
