@@ -9,6 +9,10 @@
 #endif
 #include <tusb.h>
 
+#if TUSB_VERSION_MAJOR == 0 && TUSB_VERSION_MINOR < 16
+#warning "TinyUSB 0.16.0 or later is needed fro USB UVC functionality!"
+#endif
+
 #include <FreeRTOS.h>
 #include <semphr.h>
 #include <task.h>
