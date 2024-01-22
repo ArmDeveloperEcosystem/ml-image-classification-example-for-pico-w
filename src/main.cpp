@@ -2,7 +2,7 @@
 #include <pico/stdlib.h>
 #include <pico/cyw43_arch.h>
 
-#include <bsp/board.h>
+#include <bsp/board_api.h>
 #include <tusb.h>
 
 #include <FreeRTOS.h>
@@ -76,7 +76,8 @@ int main(void)
 
 void main_task(void*)
 {
-    while (!stdio_usb_connected()) {
+    // wait up to 5 seconds for the USB serial to be opened
+    while (!stdio_usb_connected() && (xTaskGetTickCount() / pdMS_TO_TICKS(1)) < 5000) {
         taskYIELD();
     }
 
@@ -115,7 +116,7 @@ void main_task(void*)
         return;
     }
 
-    slack_client_post_message(&slack_client, ":wave: Hello Slack", "pico-w-test");
+    slack_client_post_message(&slack_client, ":wave: Hello Slack", SLACK_CHANNEL);
 
     while (1) {
         xSemaphoreTake(tensor_arena_mutex, portMAX_DELAY);
@@ -151,7 +152,7 @@ void main_task(void*)
 
                 LogInfo(("EV Charger is occupied"));
 
-                slack_client_post_message(&slack_client, ":redlight: EV charger 1 is occupied :redlight:", "pico-w-test");
+                slack_client_post_message(&slack_client, ":redlight: EV charger 1 is occupied :redlight:", SLACK_CHANNEL);
             }
         } else {
             if (occupied) {
@@ -159,7 +160,7 @@ void main_task(void*)
 
                 LogInfo(("EV Charger is available"));
 
-                slack_client_post_message(&slack_client, ":greenlight: EV charger 1 is available :greenlight:", "pico-w-test");
+                slack_client_post_message(&slack_client, ":greenlight: EV charger 1 is available :greenlight:", SLACK_CHANNEL);
             }
         }
     }

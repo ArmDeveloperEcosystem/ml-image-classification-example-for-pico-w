@@ -26,8 +26,8 @@ target_include_directories(ml-image-classification-example-for-pico-w PRIVATE
 target_compile_definitions(ml-image-classification-example-for-pico-w PRIVATE
     WIFI_SSID=\"${WIFI_SSID}\"
     WIFI_PASSWORD=\"${WIFI_PASSWORD}\"
-    SLACK_APP_TOKEN=\"${SLACK_APP_TOKEN}\"
     SLACK_BOT_TOKEN=\"${SLACK_BOT_TOKEN}\"
+    SLACK_CHANNEL=\"${SLACK_CHANNEL}\"
 )
 
 target_link_libraries(ml-image-classification-example-for-pico-w PRIVATE
